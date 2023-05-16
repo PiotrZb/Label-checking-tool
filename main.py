@@ -7,21 +7,23 @@ import sys
 
 # consts
 DISPLAYED_SIZE = (1280, 736)
-IMAGE_FORMAT = '.png'
 LABEL_FILE_FORMAT = '.txt'
+IMAGES_FORMATS = ['.png', '.jpg', '.jpeg', '.bmp']
 
 
 def init():
     """
     Sets script args (path to images, path to labels, path to incorrect data folder).
-    :return: Namespace that contains entered paths.
+    :return: Namespace that contains entered paths and format of images.
     """
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument('-ip', '--imagespath', default='./', help='Path to images')
     parser.add_argument('-lp', '--labelspath', default='./', help='Path to labels')
     parser.add_argument('-icp', '--incorrectpath', default='./IncorrectData/',
                         help='Path to folder, where incorrect data should be stored')
+    parser.add_argument('-if', '--imagesformat', default='.png', help='Image format')
 
     return parser.parse_args()
 
@@ -30,9 +32,11 @@ def check_args(args):
     """
     Checks if entered paths ara valid.
     :param args: Namespace with entered paths.
-    :return: tuple of three strings that represents: path to images, path to labels, path to incorrect data folder.
+    :return: tuple of three strings (path to images, path to labels, path to incorrect data folder), selected format of
+    images.
     """
 
+    # checking if entered paths are valid
     if not os.path.exists(args.imagespath):
         print('Path to images is invalid')
         sys.exit()
@@ -47,25 +51,33 @@ def check_args(args):
         print('Path to incorrect data folder is invalid')
         sys.exit()
 
-    return (args.imagespath, args.labelspath, args.incorrectpath)
+    # checking if selected format is supported
+    if args.imagesformat not in IMAGES_FORMATS:
+        print('Selected format of images is not supported')
+        sys.exit()
+
+    return (args.imagespath, args.labelspath, args.incorrectpath), args.imagesformat
 
 
-def filter_data(args):
+def filter_data(paths, imgs_format):
     """
     Moves images without labels and labels without images to incorrect data folder.
-    :param args: tuple of three strings that represents: path to images, path to labels, path to incorrect data folder.
+    :param imgs_format: images format.
+    :param paths: tuple of three strings that represents: path to images, path to labels, path to incorrect data folder.
     """
 
-    path_to_images, path_to_labels, path_to_incorrect_data = args
+    path_to_images, path_to_labels, path_to_incorrect_data = paths
 
-    img_names = [x.split('.')[0] for x in os.listdir(path_to_images) if IMAGE_FORMAT in x]
+    img_names = [x.split('.')[0] for x in os.listdir(path_to_images) if imgs_format in x]
     label_names = [x.split('.')[0] for x in os.listdir(path_to_labels) if LABEL_FILE_FORMAT in x]
 
+    # moving images that are not labeled to incorrect data folder
     for img_name in img_names:
         if img_name not in label_names:
-            file_name = img_name + IMAGE_FORMAT
+            file_name = img_name + imgs_format
             shutil.move(path_to_images + file_name, path_to_incorrect_data + file_name)
 
+    # moving labels without images to incorrect data folder
     for label_name in label_names:
         if label_name not in img_names:
             file_name = label_name + LABEL_FILE_FORMAT
@@ -78,6 +90,7 @@ def random_color():
     :return: tuple of three values from 0 to 255.
     """
 
+    # generating random RGB values
     r = random.randint(0, 255)
     g = random.randint(0, 255)
     b = random.randint(0, 255)
@@ -93,11 +106,11 @@ def draw_label(lines, img):
     :return: image with bboxes.
     """
 
+    # shape of image
     img_height, img_width = img.shape[:2]
 
-    random_color()
-
     for line in lines:
+        # reading values from labels
         id, x, y, w, h = line.split(' ')
 
         rect_center_x = float(x) * img_width
@@ -108,32 +121,38 @@ def draw_label(lines, img):
         top_left = (int(rect_center_x - rect_width / 2), int(rect_center_y - rect_height / 2))
         bottom_right = (int(rect_center_x + rect_width / 2), int(rect_center_y + rect_height / 2))
 
+        # random color generation
         color = random_color()
 
+        # drawing bboxes
         img = cv.rectangle(img, top_left, bottom_right, color, 2)
+
+        # TODO: Displaying id
 
     return img
 
 
-def loop(args):
-    '''
+def loop(paths, imgs_format):
+    """
     Loops through all images and displays them with their labels.
     Key bindings:
     * 'q' -> quit
     * 'a' -> previous
     * 'd' -> next
     * 'space' -> move to incorrect data folder
-    :param args: tuple of three strings: path to images, path to labels, path to incorrect data folder.
-    '''
+    :param imgs_format: selected format of images.
+    :param paths: tuple of three strings: path to images, path to labels, path to incorrect data folder.
+    """
 
-    path_to_images, path_to_labels, path_to_incorrect_data = args
+    path_to_images, path_to_labels, path_to_incorrect_data = paths
 
-    names = [x.split('.')[0] for x in os.listdir(path_to_images) if IMAGE_FORMAT in x]
+    names = [x.split('.')[0] for x in os.listdir(path_to_images) if imgs_format in x]
 
     index = 0
 
+    # loop for displaying images
     while len(names) > 0:
-        image = cv.imread(path_to_images + names[index] + IMAGE_FORMAT)
+        image = cv.imread(path_to_images + names[index] + imgs_format)
 
         # reading labels from txt
         with open(path_to_labels + names[index] + LABEL_FILE_FORMAT, 'r') as file:
@@ -162,8 +181,8 @@ def loop(args):
         # move to IncorrectData folder
         elif key == ord(' '):
             # move images and labels to incorrect data folder
-            shutil.move(path_to_images + names[index] + IMAGE_FORMAT,
-                        path_to_incorrect_data + names[index] + IMAGE_FORMAT)
+            shutil.move(path_to_images + names[index] + imgs_format,
+                        path_to_incorrect_data + names[index] + imgs_format)
             shutil.move(path_to_labels + names[index] + LABEL_FILE_FORMAT,
                         path_to_incorrect_data + names[index] + LABEL_FILE_FORMAT)
             names.remove(names[index])
@@ -176,9 +195,9 @@ def loop(args):
 
 def main():
     args = init()
-    args = check_args(args)
-    filter_data(args)
-    loop(args)
+    paths, images_format = check_args(args)
+    filter_data(paths, images_format)
+    loop(paths, images_format)
 
 
 if __name__ == '__main__':
