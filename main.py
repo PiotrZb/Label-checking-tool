@@ -127,7 +127,8 @@ def draw_label(lines, img):
         # drawing bboxes
         img = cv.rectangle(img, top_left, bottom_right, color, 2)
 
-        # TODO: Displaying id
+        # displaying id
+        img = cv.putText(img, id, top_left, cv.FONT_HERSHEY_DUPLEX, 1, color, 2)
 
     return img
 
