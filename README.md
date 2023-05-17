@@ -40,5 +40,5 @@ python check_labels.py -ip ./images/ -lp ./labels/ -icp ./IncorrectData/ -if .pn
 * Path to images: './'
 * Path to incorrect data folder: './IncorrectData/'
 * Image format: '.png'
-* Displaying image size: 1280x736
+* Size of displayed image: 1280x736
 * Labels format: '.txt'
