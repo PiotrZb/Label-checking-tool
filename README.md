@@ -1,6 +1,6 @@
-# **Label checking tool**
+# **🛠️ Label checking tool 🛠️**
 
-## Description
+## Description ℹ️
 
 Label validation tool written in python.<br />
 The script draws bounding boxes on corresponding images and enables users to navigate through the dataset easily using the keyboard.<br />
@@ -8,14 +8,14 @@ Images not related to any label are automaticaly send to incorrect data folderd,
 Supported image formats: .png, .jpg, .jpeg, .bmp.<br />
 Labels schould be stored in .txt files in YOLO format.
 
-## Requirements
+## Requirements ⚙️
 
 You need to install opencv library for python:
 ```cmd
 pip install opencv-python
 ```
 
-## Usage
+## Usage 👈
 
 You can drop check_labels.py in folder containing your data (both images and labels) and run it via console:
 ```cmd
@@ -27,14 +27,14 @@ Youn can also send args containing paths to images, labels, incorrect data folde
 python check_labels.py -ip ./images/ -lp ./labels/ -icp ./IncorrectData/ -if .png
 ```
 
-## Keybinding
+## Keybinding ⌨️
 
 * Next image <kbd>d</kbd>
 * Previous image <kbd>a</kbd>
 * Send to incorrect data folder <kbd>Space</kbd>
 * Quit <kbd>q</kbd>
 
-## Default parameters
+## Default parameters 🧰
 
 * Path to labels: './'
 * Path to images: './'
@@ -42,3 +42,6 @@ python check_labels.py -ip ./images/ -lp ./labels/ -icp ./IncorrectData/ -if .pn
 * Image format: '.png'
 * Size of displayed image: 1280x736
 * Labels format: '.txt'
+
+## License :page_facing_up:
+[MIT License](LICENSE)
